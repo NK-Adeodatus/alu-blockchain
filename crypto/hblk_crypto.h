@@ -54,14 +54,14 @@ typedef struct sig_s
 	uint8_t	len;
 } sig_t;
 
-ec_key_t	*ec_create(void);
-uint8_t		*ec_to_pub(ec_key_t const *key, uint8_t pub[EC_PUB_LEN]);
-ec_key_t	*ec_from_pub(uint8_t const pub[EC_PUB_LEN]);
-int		ec_save(ec_key_t *key, char const *folder);
-ec_key_t	*ec_load(char const *folder);
-int		ec_sign(ec_key_t const *key, uint8_t const *msg,
+EC_KEY		*ec_create(void);
+uint8_t		*ec_to_pub(EC_KEY const *key, uint8_t pub[EC_PUB_LEN]);
+EC_KEY		*ec_from_pub(uint8_t const pub[EC_PUB_LEN]);
+int		ec_save(EC_KEY *key, char const *folder);
+EC_KEY		*ec_load(char const *folder);
+int		ec_sign(EC_KEY const *key, uint8_t const *msg,
 			size_t msglen, sig_t *sig);
-int		ec_verify(ec_key_t const *key, uint8_t const *msg,
+int		ec_verify(EC_KEY const *key, uint8_t const *msg,
 			size_t msglen, sig_t const *sig);
 
 #endif /* HBLK_CRYPTO_H */

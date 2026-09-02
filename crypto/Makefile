@@ -16,7 +16,7 @@ OBJ      := sha256.o \
              ec_to_pub.o \
              ec_verify.o
 
-.PHONY: all clean fclean re sha256-test
+.PHONY: all clean fclean re sha256-test ec_create-test
 
 all: $(LIB)
 
@@ -28,6 +28,10 @@ $(LIB): $(OBJ)
 
 # ── Task 0: sha256 ────────────────────────────────────────────────────────────
 sha256-test: test/sha256-main.c provided/_print_hex_buffer.c sha256.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# ── Task 1: ec_create ─────────────────────────────────────────────────────────
+ec_create-test: test/ec_create-main.c ec_create.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
