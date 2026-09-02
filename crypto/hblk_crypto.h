@@ -64,8 +64,4 @@ int		ec_sign(ec_key_t const *key, uint8_t const *msg,
 int		ec_verify(ec_key_t const *key, uint8_t const *msg,
 			size_t msglen, sig_t const *sig);
 
-/* --- Utility --- */
-
-void		_print_hex_buffer(uint8_t const *buf, size_t len);
-
 #endif /* HBLK_CRYPTO_H */
