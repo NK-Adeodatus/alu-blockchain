@@ -35,6 +35,16 @@ uint8_t *sha256(int8_t const *s, size_t len,
 #define EC_PUB_LEN 65
 
 /**
+ * PRI_FILENAME - Name of the file storing the EC private key
+ */
+#define PRI_FILENAME "key.pem"
+
+/**
+ * PUB_FILENAME - Name of the file storing the EC public key
+ */
+#define PUB_FILENAME "key_pub.pem"
+
+/**
  * struct ec_key_s - Wrapper around an OpenSSL EC_KEY
  * @key: Pointer to the wrapped EC key
  */
