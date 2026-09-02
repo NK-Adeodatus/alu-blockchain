@@ -16,7 +16,7 @@ OBJ      := sha256.o \
              ec_to_pub.o \
              ec_verify.o
 
-.PHONY: all clean fclean re sha256-test ec_create-test ec_to_pub-test
+.PHONY: all clean fclean re sha256-test ec_create-test ec_to_pub-test ec_from_pub-test
 
 all: $(LIB)
 
@@ -36,6 +36,10 @@ ec_create-test: test/ec_create-main.c ec_create.c
 
 # ── Task 2: ec_to_pub ─────────────────────────────────────────────────────────
 ec_to_pub-test: test/ec_to_pub-main.c provided/_print_hex_buffer.c ec_to_pub.c ec_create.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# ── Task 3: ec_from_pub ────────────────────────────────────────────────────────
+ec_from_pub-test: test/ec_from_pub-main.c provided/_print_hex_buffer.c ec_from_pub.c ec_to_pub.c ec_create.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
