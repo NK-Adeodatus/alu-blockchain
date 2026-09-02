@@ -35,7 +35,7 @@ uint8_t *sha256(int8_t const *s, size_t len,
 #define EC_PUB_LEN 65
 
 /**
- * ec_key_t - Wrapper around an OpenSSL EC_KEY
+ * struct ec_key_s - Wrapper around an OpenSSL EC_KEY
  * @key: Pointer to the wrapped EC key
  */
 typedef struct ec_key_s
@@ -44,9 +44,9 @@ typedef struct ec_key_s
 } ec_key_t;
 
 /**
- * sig_t - Elliptic-curve signature
- * @sig:   DER-encoded signature bytes
- * @len:   Number of valid bytes in @sig
+ * struct sig_s - Elliptic-curve signature
+ * @sig: DER-encoded signature bytes
+ * @len: Number of valid bytes in @sig
  */
 typedef struct sig_s
 {
