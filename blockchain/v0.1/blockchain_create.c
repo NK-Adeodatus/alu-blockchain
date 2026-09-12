@@ -4,6 +4,29 @@
 #include "blockchain.h"
 
 /**
+ * _create_genesis - Allocates and initialises the Genesis Block
+ *
+ * Return: Pointer to the Genesis Block, or NULL on failure
+ */
+static block_t *_create_genesis(void)
+{
+	block_t		*genesis;
+	block_info_t	info = {GENESIS_INDEX, GENESIS_DIFFICULTY,
+				GENESIS_TIMESTAMP, GENESIS_NONCE, {0}};
+
+	genesis = calloc(1, sizeof(*genesis));
+	if (!genesis)
+		return (NULL);
+
+	genesis->info = info;
+	memcpy(genesis->data.buffer, GENESIS_DATA, GENESIS_DATA_LEN);
+	genesis->data.len = GENESIS_DATA_LEN;
+	memcpy(genesis->hash, GENESIS_HASH, SHA256_DIGEST_LENGTH);
+
+	return (genesis);
+}
+
+/**
  * blockchain_create - Creates a new Blockchain and initialises it
  *
  * The Blockchain is initialised with a single Genesis Block whose content
@@ -15,13 +38,6 @@ blockchain_t *blockchain_create(void)
 {
 	blockchain_t	*blockchain;
 	block_t		*genesis;
-	block_info_t	genesis_info = {
-		GENESIS_INDEX,
-		GENESIS_DIFFICULTY,
-		GENESIS_TIMESTAMP,
-		GENESIS_NONCE,
-		{0}	/* prev_hash: 32 zero bytes */
-	};
 
 	blockchain = malloc(sizeof(*blockchain));
 	if (!blockchain)
@@ -34,25 +50,9 @@ blockchain_t *blockchain_create(void)
 		return (NULL);
 	}
 
-	genesis = calloc(1, sizeof(*genesis));
-	if (!genesis)
-	{
-		llist_destroy(blockchain->chain, 0, NULL);
-		free(blockchain);
-		return (NULL);
-	}
-
-	/* Populate info */
-	genesis->info = genesis_info;
-
-	/* Populate data */
-	memcpy(genesis->data.buffer, GENESIS_DATA, GENESIS_DATA_LEN);
-	genesis->data.len = GENESIS_DATA_LEN;
-
-	/* Set pre-defined hash */
-	memcpy(genesis->hash, GENESIS_HASH, SHA256_DIGEST_LENGTH);
-
-	if (llist_add_node(blockchain->chain, genesis, ADD_NODE_REAR) != 0)
+	genesis = _create_genesis();
+	if (!genesis || llist_add_node(blockchain->chain, genesis,
+		ADD_NODE_REAR) != 0)
 	{
 		free(genesis);
 		llist_destroy(blockchain->chain, 0, NULL);
