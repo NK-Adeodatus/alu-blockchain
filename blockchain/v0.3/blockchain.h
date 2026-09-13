@@ -6,6 +6,7 @@
 #include <llist.h>
 
 #include "../../crypto/hblk_crypto.h"
+#include "transaction/transaction.h"
 
 /* --- Macros --- */
 
@@ -57,7 +58,6 @@ typedef struct block_data_s
 {
 	int8_t		buffer[BLOCKCHAIN_DATA_MAX];
 	uint32_t	len;
-	llist_t		*transactions;
 } block_data_t;
 
 /**
@@ -65,12 +65,14 @@ typedef struct block_data_s
  *
  * @info: Block metadata
  * @data: Block data
+ * @transactions: List of transactions
  * @hash: SHA256 hash of the Block (based on its @info and @data)
  */
 typedef struct block_s
 {
 	block_info_t	info;
 	block_data_t	data;
+	llist_t		*transactions;
 	uint8_t		hash[SHA256_DIGEST_LENGTH];
 } block_t;
 
