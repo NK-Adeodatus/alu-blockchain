@@ -18,7 +18,9 @@ static int find_u(llist_node_t node, unsigned int idx, void *arg)
 	find_unspent_t *ctx = (find_unspent_t *)arg;
 
 	(void)idx;
-	if (memcmp(u->out.hash, ctx->tx_out_hash, SHA256_DIGEST_LENGTH) == 0)
+	if (!memcmp(u->out.hash, ctx->tx_out_hash, SHA256_DIGEST_LENGTH) &&
+	    !memcmp(u->block_hash, ctx->block_hash, SHA256_DIGEST_LENGTH) &&
+	    !memcmp(u->tx_id, ctx->tx_id, SHA256_DIGEST_LENGTH))
 	{
 		ctx->found = u;
 		return (1);
@@ -43,6 +45,8 @@ static int validate_input(llist_node_t node, unsigned int idx, void *arg)
 	EC_KEY *key;
 
 	(void)idx;
+	fctx.block_hash = in->block_hash;
+	fctx.tx_id = in->tx_id;
 	fctx.tx_out_hash = in->tx_out_hash;
 	fctx.found = NULL;
 	llist_for_each(ctx->all_unspent, find_u, &fctx);

@@ -72,11 +72,15 @@ typedef struct transaction_s
 /**
  * struct find_unspent_s - Helper to find an unspent transaction output
  *
+ * @block_hash:  Block hash to match
+ * @tx_id:       Transaction ID to match
  * @tx_out_hash: Hash to search for
  * @found:       Pointer to the matching unspent output if found
  */
 typedef struct find_unspent_s
 {
+	uint8_t const		*block_hash;
+	uint8_t const		*tx_id;
 	uint8_t const		*tx_out_hash;
 	unspent_tx_out_t	*found;
 } find_unspent_t;
