@@ -82,6 +82,11 @@ typedef struct find_unspent_s
 } find_unspent_t;
 
 /**
+ * SIG_MAX_LEN - Maximum length of a DER-encoded signature
+ */
+#define SIG_MAX_LEN 72
+
+/**
  * COINBASE_AMOUNT - Amount of coins awarded in a coinbase transaction
  */
 #define COINBASE_AMOUNT 50
