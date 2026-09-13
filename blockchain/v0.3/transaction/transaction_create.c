@@ -57,6 +57,30 @@ static int sign_input(llist_node_t node, unsigned int idx, void *arg)
 }
 
 /**
+ * populate_outputs - Populates transaction outputs
+ *
+ * @tx:       Transaction to populate
+ * @amount:   Target amount
+ * @rem:      Remaining total after taking amount
+ * @receiver: Receiver's public key
+ * @sender:   Sender's public key
+ */
+static void populate_outputs(transaction_t *tx, uint32_t amount, uint32_t rem,
+	uint8_t const receiver[EC_PUB_LEN], uint8_t const sender[EC_PUB_LEN])
+{
+	tx_out_t *out;
+
+	tx->outputs = llist_create(MT_SUPPORT_FALSE);
+	out = tx_out_create(amount, receiver);
+	llist_add_node(tx->outputs, out, ADD_NODE_REAR);
+	if (rem > 0)
+	{
+		out = tx_out_create(rem, sender);
+		llist_add_node(tx->outputs, out, ADD_NODE_REAR);
+	}
+}
+
+/**
  * transaction_create - Creates a transaction
  *
  * @sender:      Private key of the transaction sender
@@ -72,16 +96,13 @@ transaction_t *transaction_create(EC_KEY const *sender,
 	transaction_t *tx;
 	collect_tx_t cctx;
 	sign_ctx_t sctx;
-	uint8_t receiver_pub[EC_PUB_LEN];
-	tx_out_t *out;
+	uint8_t r_pub[EC_PUB_LEN];
 
 	if (!sender || !receiver || !all_unspent)
 		return (NULL);
 	ec_to_pub(sender, cctx.sender_pub);
 	cctx.inputs = llist_create(MT_SUPPORT_FALSE);
-	cctx.total = 0;
-	cctx.amount = amount;
-	cctx.done = 0;
+	cctx.total = 0, cctx.amount = amount, cctx.done = 0;
 	llist_for_each(all_unspent, collect_unspent, &cctx);
 	if (cctx.total < amount)
 	{
@@ -95,25 +116,15 @@ transaction_t *transaction_create(EC_KEY const *sender,
 		return (NULL);
 	}
 	tx->inputs = cctx.inputs;
-	tx->outputs = llist_create(MT_SUPPORT_FALSE);
-	ec_to_pub(receiver, receiver_pub);
-	out = tx_out_create(amount, receiver_pub);
-	llist_add_node(tx->outputs, out, ADD_NODE_REAR);
-	if (cctx.total > amount)
-	{
-		out = tx_out_create(cctx.total - amount, cctx.sender_pub);
-		llist_add_node(tx->outputs, out, ADD_NODE_REAR);
-	}
+	ec_to_pub(receiver, r_pub);
+	populate_outputs(tx, amount, cctx.total - amount, r_pub, cctx.sender_pub);
 	transaction_hash(tx, tx->id);
-	sctx.tx_id = tx->id;
-	sctx.sender = sender;
-	sctx.all_unspent = all_unspent;
-	sctx.valid = 1;
+	sctx.tx_id = tx->id, sctx.sender = sender;
+	sctx.all_unspent = all_unspent, sctx.valid = 1;
 	llist_for_each(tx->inputs, sign_input, &sctx);
 	if (!sctx.valid)
 	{
-		llist_destroy(tx->inputs, 1, free);
-		llist_destroy(tx->outputs, 1, free);
+		llist_destroy(tx->inputs, 1, free), llist_destroy(tx->outputs, 1, free);
 		free(tx);
 		return (NULL);
 	}
