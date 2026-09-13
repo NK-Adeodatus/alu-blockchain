@@ -69,6 +69,18 @@ typedef struct transaction_s
 	llist_t		*outputs;
 } transaction_t;
 
+/**
+ * struct find_unspent_s - Helper to find an unspent transaction output
+ *
+ * @tx_out_hash: Hash to search for
+ * @found:       Pointer to the matching unspent output if found
+ */
+typedef struct find_unspent_s
+{
+	uint8_t const		*tx_out_hash;
+	unspent_tx_out_t	*found;
+} find_unspent_t;
+
 /* --- tx_out_create --- */
 tx_out_t *tx_out_create(uint32_t amount, uint8_t const pub[EC_PUB_LEN]);
 

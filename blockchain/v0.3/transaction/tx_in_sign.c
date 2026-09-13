@@ -5,18 +5,6 @@
 #include "transaction.h"
 
 /**
- * struct find_unspent_s - Helper struct for finding unspent tx out
- *
- * @tx_out_hash: Hash to search for
- * @found: Found unspent tx out
- */
-typedef struct find_unspent_s
-{
-	uint8_t const	*tx_out_hash;
-	unspent_tx_out_t *found;
-} find_unspent_t;
-
-/**
  * find_unspent - llist_for_each callback to find matching unspent output
  *
  * @node: Current unspent tx output
