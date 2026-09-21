@@ -30,5 +30,6 @@ block_t *block_create(block_t const *prev, int8_t const *data,
 	len = data_len > BLOCKCHAIN_DATA_MAX ? BLOCKCHAIN_DATA_MAX : data_len;
 	memcpy(block->data.buffer, data, len);
 	block->data.len = len;
+	block->transactions = llist_create(MT_SUPPORT_FALSE);
 	return (block);
 }

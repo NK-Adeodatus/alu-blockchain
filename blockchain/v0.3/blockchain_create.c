@@ -19,6 +19,7 @@ blockchain_t *blockchain_create(void)
 	if (!blockchain)
 		return (NULL);
 	blockchain->chain = llist_create(MT_SUPPORT_FALSE);
+	blockchain->unspent = llist_create(MT_SUPPORT_FALSE);
 	if (!blockchain->chain)
 	{
 		free(blockchain);
@@ -27,6 +28,7 @@ blockchain_t *blockchain_create(void)
 	genesis = calloc(1, sizeof(*genesis));
 	if (!genesis)
 	{
+		llist_destroy(blockchain->unspent, 0, NULL);
 		llist_destroy(blockchain->chain, 0, NULL);
 		free(blockchain);
 		return (NULL);
@@ -37,10 +39,12 @@ blockchain_t *blockchain_create(void)
 	genesis->info.nonce = GENESIS_NONCE;
 	memcpy(genesis->data.buffer, GENESIS_DATA, GENESIS_DATA_LEN);
 	genesis->data.len = GENESIS_DATA_LEN;
+	genesis->transactions = llist_create(MT_SUPPORT_FALSE);
 	memcpy(genesis->hash, GENESIS_HASH, SHA256_DIGEST_LENGTH);
 	if (llist_add_node(blockchain->chain, genesis, ADD_NODE_REAR) != 0)
 	{
 		free(genesis);
+		llist_destroy(blockchain->unspent, 0, NULL);
 		llist_destroy(blockchain->chain, 0, NULL);
 		free(blockchain);
 		return (NULL);
