@@ -4,18 +4,6 @@
 #include "transaction.h"
 
 /**
- * struct spent_check_s - Context for checking if an unspent is spent
- *
- * @inputs:  List of transaction inputs to check against
- * @is_spent: Set to 1 if found spent
- */
-typedef struct spent_check_s
-{
-	llist_t	*inputs;
-	int		is_spent;
-} spent_check_t;
-
-/**
  * is_input_match - Checks if a tx_in references a given unspent output
  *
  * @node: Current tx_in
@@ -36,18 +24,6 @@ static int is_input_match(llist_node_t node, unsigned int idx, void *arg)
 		return (1);
 	return (0);
 }
-
-/**
- * struct add_ctx_s - Context for adding unspent outputs from transactions
- *
- * @block_hash: Hash of the block containing the transactions
- * @new_list:   New list of unspent transaction outputs
- */
-typedef struct add_ctx_s
-{
-	uint8_t		*block_hash;
-	llist_t		*new_list;
-} add_ctx_t;
 
 /**
  * add_tx_outputs - Adds all outputs of a transaction to new_unspent list
@@ -79,18 +55,6 @@ static int add_tx_outputs(llist_node_t node, unsigned int idx, void *arg)
 }
 
 /**
- * struct filter_ctx_s - Context for filtering spent outputs
- *
- * @transactions: List of processed transactions
- * @new_list:     New list to copy unspent outputs to
- */
-typedef struct filter_ctx_s
-{
-	llist_t	*transactions;
-	llist_t	*new_list;
-} filter_ctx_t;
-
-/**
  * copy_if_unspent - Copies an unspent output if not consumed by any input
  *
  * @node: Current unspent_tx_out_t
@@ -104,6 +68,7 @@ static int copy_if_unspent(llist_node_t node, unsigned int idx, void *arg)
 	unspent_tx_out_t *u = (unspent_tx_out_t *)node;
 	filter_ctx_t *ctx = (filter_ctx_t *)arg;
 	transaction_t *tx;
+	unspent_tx_out_t *new_u;
 	int i, ntx;
 
 	(void)idx;
@@ -114,7 +79,11 @@ static int copy_if_unspent(llist_node_t node, unsigned int idx, void *arg)
 		if (llist_for_each(tx->inputs, is_input_match, u))
 			return (0);
 	}
-	llist_add_node(ctx->new_list, u, ADD_NODE_REAR);
+	new_u = malloc(sizeof(*new_u));
+	if (!new_u)
+		return (0);
+	memcpy(new_u, u, sizeof(*new_u));
+	llist_add_node(ctx->new_list, new_u, ADD_NODE_REAR);
 	return (0);
 }
 

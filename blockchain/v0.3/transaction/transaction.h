@@ -178,6 +178,31 @@ transaction_t *coinbase_create(EC_KEY const *receiver, uint32_t block_index);
 /* --- coinbase_is_valid --- */
 int coinbase_is_valid(transaction_t const *coinbase, uint32_t block_index);
 
+
+/**
+ * struct add_ctx_s - Context for adding unspent outputs from transactions
+ *
+ * @block_hash: Hash of the block containing the transactions
+ * @new_list:   New list of unspent transaction outputs
+ */
+typedef struct add_ctx_s
+{
+	uint8_t		*block_hash;
+	llist_t		*new_list;
+} add_ctx_t;
+
+/**
+ * struct filter_ctx_s - Context for filtering spent outputs
+ *
+ * @transactions: List of processed transactions
+ * @new_list:     New list to copy unspent outputs to
+ */
+typedef struct filter_ctx_s
+{
+	llist_t	*transactions;
+	llist_t	*new_list;
+} filter_ctx_t;
+
 /* --- transaction_destroy --- */
 void transaction_destroy(transaction_t *transaction);
 llist_t *update_unspent(llist_t *transactions,
