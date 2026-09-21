@@ -74,41 +74,21 @@ static int write_transaction(llist_node_t node, unsigned int idx, void *arg)
 }
 
 /**
- * blockchain_serialize - Serializes a Blockchain into a file
+ * write_blocks - Writes all blocks to a file
  *
- * @blockchain: Pointer to the Blockchain to serialize
- * @path:       Path to the output file (overwritten if it exists)
- *
- * Return: 0 on success, or -1 on failure
+ * @chain: List of blocks
+ * @f:     FILE pointer
  */
-int blockchain_serialize(blockchain_t const *blockchain, char const *path)
+static void write_blocks(llist_t *chain, FILE *f)
 {
-	FILE		*f;
-	uint32_t	nb_blocks, nb_unspent;
-	int		i, size, ntx;
-	block_t		*block;
-	unspent_tx_out_t *u;
-	uint16_t	w = 0x0102;
-	uint8_t		endian = *(uint8_t *)&w == 1 ? 2 : 1;
-	int32_t		nb_tx;
+	int i, size;
+	block_t *block;
+	int32_t nb_tx;
 
-	f = fopen(path, "wb");
-	if (!f)
-		return (-1);
-
-	size = llist_size(blockchain->chain);
-	nb_blocks = (uint32_t)size;
-	nb_unspent = (uint32_t)llist_size(blockchain->unspent);
-
-	fwrite("HBLK", 1, 4, f);
-	fwrite("0.3", 1, 3, f);
-	fwrite(&endian, 1, 1, f);
-	fwrite(&nb_blocks, sizeof(nb_blocks), 1, f);
-	fwrite(&nb_unspent, sizeof(nb_unspent), 1, f);
-
+	size = llist_size(chain);
 	for (i = 0; i < size; i++)
 	{
-		block = llist_get_node_at(blockchain->chain, i);
+		block = llist_get_node_at(chain, i);
 		fwrite(&block->info.index, sizeof(block->info.index), 1, f);
 		fwrite(&block->info.difficulty, sizeof(block->info.difficulty), 1, f);
 		fwrite(&block->info.timestamp, sizeof(block->info.timestamp), 1, f);
@@ -125,7 +105,36 @@ int blockchain_serialize(blockchain_t const *blockchain, char const *path)
 		if (nb_tx > 0)
 			llist_for_each(block->transactions, write_transaction, f);
 	}
+}
 
+/**
+ * blockchain_serialize - Serializes a Blockchain into a file
+ *
+ * @blockchain: Pointer to the Blockchain to serialize
+ * @path:       Path to the output file (overwritten if it exists)
+ *
+ * Return: 0 on success, or -1 on failure
+ */
+int blockchain_serialize(blockchain_t const *blockchain, char const *path)
+{
+	FILE *f;
+	uint32_t nb_blocks, nb_unspent;
+	int i, ntx;
+	unspent_tx_out_t *u;
+	uint16_t w = 0x0102;
+	uint8_t endian = *(uint8_t *)&w == 1 ? 2 : 1;
+
+	f = fopen(path, "wb");
+	if (!f)
+		return (-1);
+	nb_blocks = (uint32_t)llist_size(blockchain->chain);
+	nb_unspent = (uint32_t)llist_size(blockchain->unspent);
+	fwrite("HBLK", 1, 4, f);
+	fwrite("0.3", 1, 3, f);
+	fwrite(&endian, 1, 1, f);
+	fwrite(&nb_blocks, sizeof(nb_blocks), 1, f);
+	fwrite(&nb_unspent, sizeof(nb_unspent), 1, f);
+	write_blocks(blockchain->chain, f);
 	ntx = llist_size(blockchain->unspent);
 	for (i = 0; i < ntx; i++)
 	{
@@ -136,7 +145,6 @@ int blockchain_serialize(blockchain_t const *blockchain, char const *path)
 		fwrite(u->out.pub, EC_PUB_LEN, 1, f);
 		fwrite(u->out.hash, SHA256_DIGEST_LENGTH, 1, f);
 	}
-
 	fclose(f);
 	return (0);
 }

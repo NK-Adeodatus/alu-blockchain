@@ -84,6 +84,50 @@ static transaction_t *read_transaction(FILE *f)
 }
 
 /**
+ * read_blocks - Reads blocks from file into blockchain
+ *
+ * @f:         File to read from
+ * @bc:        Blockchain to populate
+ * @nb_blocks: Number of blocks to read
+ */
+static void read_blocks(FILE *f, blockchain_t *bc, uint32_t nb_blocks)
+{
+	block_t *block;
+	uint32_t i, j;
+	int32_t nb_tx;
+	transaction_t *tx;
+
+	for (i = 0; i < nb_blocks; i++)
+	{
+		block = calloc(1, sizeof(*block));
+		if (!block)
+			break;
+		fread(&block->info.index, sizeof(block->info.index), 1, f);
+		fread(&block->info.difficulty, sizeof(block->info.difficulty), 1, f);
+		fread(&block->info.timestamp, sizeof(block->info.timestamp), 1, f);
+		fread(&block->info.nonce, sizeof(block->info.nonce), 1, f);
+		fread(block->info.prev_hash, SHA256_DIGEST_LENGTH, 1, f);
+		fread(&block->data.len, sizeof(block->data.len), 1, f);
+		fread(block->data.buffer, block->data.len, 1, f);
+		fread(block->hash, SHA256_DIGEST_LENGTH, 1, f);
+		fread(&nb_tx, sizeof(nb_tx), 1, f);
+		if (nb_tx < 0)
+			block->transactions = NULL;
+		else
+		{
+			block->transactions = llist_create(MT_SUPPORT_FALSE);
+			for (j = 0; j < (uint32_t)nb_tx; j++)
+			{
+				tx = read_transaction(f);
+				if (tx)
+					llist_add_node(block->transactions, tx, ADD_NODE_REAR);
+			}
+		}
+		llist_add_node(bc->chain, block, ADD_NODE_REAR);
+	}
+}
+
+/**
  * blockchain_deserialize - Deserializes a Blockchain from a file
  *
  * @path: Path to the file to deserialize from
@@ -92,21 +136,16 @@ static transaction_t *read_transaction(FILE *f)
  */
 blockchain_t *blockchain_deserialize(char const *path)
 {
-	FILE		*f;
-	blockchain_t	*bc;
-	block_t		*block;
-	uint32_t	i, nb_blocks, nb_unspent;
-	uint8_t		hdr[8];
-	int32_t		nb_tx;
-	transaction_t	*tx;
+	FILE *f;
+	blockchain_t *bc;
+	uint32_t i, nb_blocks, nb_unspent;
+	uint8_t hdr[8];
 	unspent_tx_out_t *u;
-	uint32_t	j;
 
 	f = fopen(path, "rb");
 	if (!f)
 		return (NULL);
-	if (fread(hdr, 1, 8, f) != 8 ||
-		memcmp(hdr, "HBLK", 4) != 0 ||
+	if (fread(hdr, 1, 8, f) != 8 || memcmp(hdr, "HBLK", 4) != 0 ||
 		memcmp(hdr + 4, "0.3", 3) != 0)
 	{
 		fclose(f);
@@ -126,37 +165,7 @@ blockchain_t *blockchain_deserialize(char const *path)
 	}
 	bc->chain = llist_create(MT_SUPPORT_FALSE);
 	bc->unspent = llist_create(MT_SUPPORT_FALSE);
-	for (i = 0; i < nb_blocks; i++)
-	{
-		block = calloc(1, sizeof(*block));
-		if (!block)
-			break;
-		fread(&block->info.index, sizeof(block->info.index), 1, f);
-		fread(&block->info.difficulty,
-			sizeof(block->info.difficulty), 1, f);
-		fread(&block->info.timestamp,
-			sizeof(block->info.timestamp), 1, f);
-		fread(&block->info.nonce, sizeof(block->info.nonce), 1, f);
-		fread(block->info.prev_hash, SHA256_DIGEST_LENGTH, 1, f);
-		fread(&block->data.len, sizeof(block->data.len), 1, f);
-		fread(block->data.buffer, block->data.len, 1, f);
-		fread(block->hash, SHA256_DIGEST_LENGTH, 1, f);
-		fread(&nb_tx, sizeof(nb_tx), 1, f);
-		if (nb_tx < 0)
-			block->transactions = NULL;
-		else
-		{
-			block->transactions = llist_create(MT_SUPPORT_FALSE);
-			for (j = 0; j < (uint32_t)nb_tx; j++)
-			{
-				tx = read_transaction(f);
-				if (tx)
-					llist_add_node(block->transactions,
-						tx, ADD_NODE_REAR);
-			}
-		}
-		llist_add_node(bc->chain, block, ADD_NODE_REAR);
-	}
+	read_blocks(f, bc, nb_blocks);
 	for (i = 0; i < nb_unspent; i++)
 	{
 		u = calloc(1, sizeof(*u));
