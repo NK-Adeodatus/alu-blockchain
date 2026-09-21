@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <llist.h>
 
 #include "../../crypto/hblk_crypto.h"
@@ -27,6 +28,16 @@
 #define GENESIS_HASH \
 	"\xc5\x2c\x26\xc8\xb5\x46\x16\x39\x63\x5d\x8e\xdf\x2a\x97\xd4\x8d" \
 	"\x0c\x8e\x00\x09\xc8\x17\xf2\xb1\xd3\xd7\xff\x2f\x04\x51\x58\x03"
+
+/**
+ * DIFFICULTY_ADJUSTMENT_INTERVAL - Number of Blocks between difficulty updates
+ */
+#define DIFFICULTY_ADJUSTMENT_INTERVAL 5
+
+/**
+ * BLOCK_GENERATION_INTERVAL - Expected time (seconds) between two Blocks
+ */
+#define BLOCK_GENERATION_INTERVAL 1
 
 /* --- Data structures --- */
 
@@ -63,10 +74,10 @@ typedef struct block_data_s
 /**
  * struct block_s - Block in the Blockchain
  *
- * @info: Block metadata
- * @data: Block data
+ * @info:         Block metadata
+ * @data:         Block data
  * @transactions: List of transactions
- * @hash: SHA256 hash of the Block (based on its @info and @data)
+ * @hash:         SHA256 hash of the Block
  */
 typedef struct block_s
 {
@@ -79,7 +90,8 @@ typedef struct block_s
 /**
  * struct blockchain_s - Blockchain structure
  *
- * @chain: Linked list of pointers to each Block in the Blockchain
+ * @chain:   Linked list of pointers to each Block in the Blockchain
+ * @unspent: Linked list of unspent transaction outputs
  */
 typedef struct blockchain_s
 {
@@ -101,5 +113,9 @@ int		blockchain_serialize(blockchain_t const *blockchain,
 blockchain_t	*blockchain_deserialize(char const *path);
 int		block_is_valid(block_t const *block,
 			block_t const *prev_block, llist_t *all_unspent);
+int		hash_matches_difficulty(uint8_t const hash[SHA256_DIGEST_LENGTH],
+			uint32_t difficulty);
+void		block_mine(block_t *block);
+uint32_t	blockchain_difficulty(blockchain_t const *blockchain);
 
 #endif /* BLOCKCHAIN_H */
