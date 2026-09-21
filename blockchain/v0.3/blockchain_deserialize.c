@@ -128,6 +128,32 @@ static void read_blocks(FILE *f, blockchain_t *bc, uint32_t nb_blocks)
 }
 
 /**
+ * read_unspent - Reads unspent transaction outputs from file
+ *
+ * @f:          File to read from
+ * @bc:         Blockchain to populate
+ * @nb_unspent: Number of unspent outputs to read
+ */
+static void read_unspent(FILE *f, blockchain_t *bc, uint32_t nb_unspent)
+{
+	uint32_t i;
+	unspent_tx_out_t *u;
+
+	for (i = 0; i < nb_unspent; i++)
+	{
+		u = calloc(1, sizeof(*u));
+		if (!u)
+			break;
+		fread(u->block_hash, SHA256_DIGEST_LENGTH, 1, f);
+		fread(u->tx_id, SHA256_DIGEST_LENGTH, 1, f);
+		fread(&u->out.amount, sizeof(u->out.amount), 1, f);
+		fread(u->out.pub, EC_PUB_LEN, 1, f);
+		fread(u->out.hash, SHA256_DIGEST_LENGTH, 1, f);
+		llist_add_node(bc->unspent, u, ADD_NODE_REAR);
+	}
+}
+
+/**
  * blockchain_deserialize - Deserializes a Blockchain from a file
  *
  * @path: Path to the file to deserialize from
@@ -138,9 +164,8 @@ blockchain_t *blockchain_deserialize(char const *path)
 {
 	FILE *f;
 	blockchain_t *bc;
-	uint32_t i, nb_blocks, nb_unspent;
+	uint32_t nb_blocks, nb_unspent;
 	uint8_t hdr[8];
-	unspent_tx_out_t *u;
 
 	f = fopen(path, "rb");
 	if (!f)
@@ -166,18 +191,7 @@ blockchain_t *blockchain_deserialize(char const *path)
 	bc->chain = llist_create(MT_SUPPORT_FALSE);
 	bc->unspent = llist_create(MT_SUPPORT_FALSE);
 	read_blocks(f, bc, nb_blocks);
-	for (i = 0; i < nb_unspent; i++)
-	{
-		u = calloc(1, sizeof(*u));
-		if (!u)
-			break;
-		fread(u->block_hash, SHA256_DIGEST_LENGTH, 1, f);
-		fread(u->tx_id, SHA256_DIGEST_LENGTH, 1, f);
-		fread(&u->out.amount, sizeof(u->out.amount), 1, f);
-		fread(u->out.pub, EC_PUB_LEN, 1, f);
-		fread(u->out.hash, SHA256_DIGEST_LENGTH, 1, f);
-		llist_add_node(bc->unspent, u, ADD_NODE_REAR);
-	}
+	read_unspent(f, bc, nb_unspent);
 	fclose(f);
 	return (bc);
 }
