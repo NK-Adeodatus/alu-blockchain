@@ -5,48 +5,6 @@
 #include "blockchain.h"
 
 /**
- * read_tx_input - Reads one transaction input from file
- *
- * @f: File to read from
- *
- * Return: Pointer to allocated tx_in_t or NULL on failure
- */
-static tx_in_t *read_tx_input(FILE *f)
-{
-	tx_in_t *in;
-
-	in = calloc(1, sizeof(*in));
-	if (!in)
-		return (NULL);
-	fread(in->block_hash, SHA256_DIGEST_LENGTH, 1, f);
-	fread(in->tx_id, SHA256_DIGEST_LENGTH, 1, f);
-	fread(in->tx_out_hash, SHA256_DIGEST_LENGTH, 1, f);
-	fread(in->sig.sig, SIG_MAX_LEN, 1, f);
-	fread(&in->sig.len, 1, 1, f);
-	return (in);
-}
-
-/**
- * read_tx_output - Reads one transaction output from file
- *
- * @f: File to read from
- *
- * Return: Pointer to allocated tx_out_t or NULL on failure
- */
-static tx_out_t *read_tx_output(FILE *f)
-{
-	tx_out_t *out;
-
-	out = calloc(1, sizeof(*out));
-	if (!out)
-		return (NULL);
-	fread(&out->amount, sizeof(out->amount), 1, f);
-	fread(out->pub, EC_PUB_LEN, 1, f);
-	fread(out->hash, SHA256_DIGEST_LENGTH, 1, f);
-	return (out);
-}
-
-/**
  * read_transaction - Reads one transaction from file
  *
  * @f: File to read from
@@ -70,15 +28,25 @@ static transaction_t *read_transaction(FILE *f)
 	tx->outputs = llist_create(MT_SUPPORT_FALSE);
 	for (j = 0; j < nin; j++)
 	{
-		in = read_tx_input(f);
-		if (in)
-			llist_add_node(tx->inputs, in, ADD_NODE_REAR);
+		in = calloc(1, sizeof(*in));
+		if (!in)
+			break;
+		fread(in->block_hash, SHA256_DIGEST_LENGTH, 1, f);
+		fread(in->tx_id, SHA256_DIGEST_LENGTH, 1, f);
+		fread(in->tx_out_hash, SHA256_DIGEST_LENGTH, 1, f);
+		fread(in->sig.sig, SIG_MAX_LEN, 1, f);
+		fread(&in->sig.len, 1, 1, f);
+		llist_add_node(tx->inputs, in, ADD_NODE_REAR);
 	}
 	for (j = 0; j < nout; j++)
 	{
-		out = read_tx_output(f);
-		if (out)
-			llist_add_node(tx->outputs, out, ADD_NODE_REAR);
+		out = calloc(1, sizeof(*out));
+		if (!out)
+			break;
+		fread(&out->amount, sizeof(out->amount), 1, f);
+		fread(out->pub, EC_PUB_LEN, 1, f);
+		fread(out->hash, SHA256_DIGEST_LENGTH, 1, f);
+		llist_add_node(tx->outputs, out, ADD_NODE_REAR);
 	}
 	return (tx);
 }
