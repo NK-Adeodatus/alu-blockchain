@@ -39,7 +39,7 @@ blockchain_t *blockchain_create(void)
 	genesis->info.nonce = GENESIS_NONCE;
 	memcpy(genesis->data.buffer, GENESIS_DATA, GENESIS_DATA_LEN);
 	genesis->data.len = GENESIS_DATA_LEN;
-	genesis->transactions = llist_create(MT_SUPPORT_FALSE);
+	genesis->transactions = NULL;
 	memcpy(genesis->hash, GENESIS_HASH, SHA256_DIGEST_LENGTH);
 	if (llist_add_node(blockchain->chain, genesis, ADD_NODE_REAR) != 0)
 	{
