@@ -100,6 +100,6 @@ int		blockchain_serialize(blockchain_t const *blockchain,
 			char const *path);
 blockchain_t	*blockchain_deserialize(char const *path);
 int		block_is_valid(block_t const *block,
-			block_t const *prev_block);
+			block_t const *prev_block, llist_t *all_unspent);
 
 #endif /* BLOCKCHAIN_H */
