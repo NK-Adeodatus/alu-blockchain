@@ -1,5 +1,7 @@
 #ifndef BLOCKCHAIN_H
 #define BLOCKCHAIN_H
+#define BLOCK_GENERATION_INTERVAL 1
+#define DIFFICULTY_ADJUSTMENT_INTERVAL 5
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -100,5 +102,6 @@ int		block_is_valid(block_t const *block,
 int hash_matches_difficulty(uint8_t const hash[SHA256_DIGEST_LENGTH],
 			    uint32_t difficulty);
 void block_mine(block_t *block);
+uint32_t blockchain_difficulty(blockchain_t const *blockchain);
 
 #endif /* BLOCKCHAIN_H */
